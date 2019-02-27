@@ -28,13 +28,15 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, return_
     def f_n(error):
         return numpy.sqrt(numpy.power(error, 2.0).mean(1)).mean(0)
 
-    def n_values(mn, mx):
-        return numpy.array(range(mn, mx+1))
+    def n_values(xx, mn, mx):
+        return [numpy.asarray(range(mn, mx))[
+                    numpy.max(numpy.argwhere(numpy.asarray([xx.shape[0] // i for i in range(mn, mx)]) == n))] for n in
+                numpy.unique([xx.shape[0] // i for i in range(mn, mx)])]
 
     def f(xx, mn, mx):
-        return numpy.vstack(list(map(lambda n: f_n(regression_error(windows(unbounded(xx), n), n)), n_values(mn, mx))))
+        return numpy.vstack(list(map(lambda n: f_n(regression_error(windows(unbounded(xx), n), n)), n_values(xx, mn, mx))))
 
-    features = numpy.log(n_values(min_widow_size, max_window_size)).reshape(-1, 1)
+    features = numpy.log(n_values(x, min_widow_size, max_window_size)).reshape(-1, 1)
     y = numpy.log(f(x, mn=min_widow_size, mx=max_window_size))
 
     if not return_confidence_interval:
