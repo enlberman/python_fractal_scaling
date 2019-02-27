@@ -29,7 +29,7 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, return_
         return numpy.sqrt(numpy.power(error, 2.0).mean(1)).mean(0)
 
     def n_values(xx, mn, mx):
-        return list(filter(lambda n: x.shape[0] // n * 2 -1 >=10, [numpy.asarray(range(mn, mx))[
+        return list(filter(lambda n: xx.shape[0] // n * 2 -1 >=10, [numpy.asarray(range(mn, mx))[
                     numpy.max(numpy.argwhere(numpy.asarray([xx.shape[0] // i for i in range(mn, mx)]) == n))] for n in
                 numpy.unique([xx.shape[0] // i for i in range(mn, mx)])]))
 
@@ -47,6 +47,6 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, return_
     else:
         estimates = [OLS(endog=y[:,i], exog=add_constant(features)).fit() for i in range(y.shape[1])]
         hurst = [est.params[1] - (0 if est.conf_int(alpha=0.05)[1,0] <=1 else 1) for est in estimates]
-        cis = [est.conf_int(alpha=0.05)[1, :] - - (0 if est.conf_int(alpha=0.05)[1,0] <=1 else 1) for est in estimates]
+        cis = [est.conf_int(alpha=0.05)[1, :] - (0 if est.conf_int(alpha=0.05)[1,0] <=1 else 1) for est in estimates]
         rsquared = [est.rsquared for est in estimates]
         return hurst, cis, rsquared
