@@ -17,7 +17,7 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, return_
         return numpy.cumsum(xx - xx.mean(0), axis=0)
 
     def windows(yt, n):
-        return numpy.split(yt, numpy.arange(n, yt.shape[0], step=n // 2))
+        return numpy.split(yt, numpy.arange(n, yt.shape[0], step=n))
 
     def regression_error(window_list, n):
         filtered_windows = list(filter(lambda x: x.shape[0] == n, window_list))
@@ -29,9 +29,9 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, return_
         return numpy.sqrt(numpy.power(error, 2.0).mean(1)).mean(0)
 
     def n_values(xx, mn, mx):
-        return list(filter(lambda n: xx.shape[0] // n * 2 -1 >=10, [numpy.asarray(range(mn, mx))[
+        return [numpy.asarray(range(mn, mx))[
                     numpy.max(numpy.argwhere(numpy.asarray([xx.shape[0] // i for i in range(mn, mx)]) == n))] for n in
-                numpy.unique([xx.shape[0] // i for i in range(mn, mx)])]))
+                numpy.unique([xx.shape[0] // i for i in range(mn, mx)])]
 
     def f(xx, mn, mx):
         return numpy.vstack(list(map(lambda n: f_n(regression_error(windows(unbounded(xx), n), n)), n_values(xx, mn, mx))))
