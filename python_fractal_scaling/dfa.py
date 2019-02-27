@@ -17,7 +17,7 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, return_
         return numpy.cumsum(xx - xx.mean(0), axis=0)
 
     def windows(yt, n):
-        return numpy.split(yt, numpy.arange(n, yt.shape[0], step=n))
+        return numpy.split(yt, numpy.arange(n, yt.shape[0], step=n // 2))
 
     def regression_error(window_list, n):
         filtered_windows = list(filter(lambda x: x.shape[0] == n, window_list))
@@ -29,9 +29,9 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, return_
         return numpy.sqrt(numpy.power(error, 2.0).mean(1)).mean(0)
 
     def n_values(xx, mn, mx):
-        return [numpy.asarray(range(mn, mx))[
+        return list(filter(lambda n: x.shape[0] // n * 2 -1 >=10, [numpy.asarray(range(mn, mx))[
                     numpy.max(numpy.argwhere(numpy.asarray([xx.shape[0] // i for i in range(mn, mx)]) == n))] for n in
-                numpy.unique([xx.shape[0] // i for i in range(mn, mx)])]
+                numpy.unique([xx.shape[0] // i for i in range(mn, mx)])]))
 
     def f(xx, mn, mx):
         return numpy.vstack(list(map(lambda n: f_n(regression_error(windows(unbounded(xx), n), n)), n_values(xx, mn, mx))))
@@ -46,7 +46,7 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, return_
         return hurst, r_squared
     else:
         estimates = [OLS(endog=y[:,i], exog=add_constant(features)).fit() for i in range(y.shape[1])]
-        hurst = [est.params[1] for est in estimates]
-        cis = [(estimates[i].conf_int(alpha=0.05)[1, :] - (0. if hurst[i] <= 1 else 1.)) for i in range(len(estimates))]
-        hurst = [h if h <= 1 else h - 1 for h in hurst]
-        return hurst, cis
+        hurst = [est.params[1] - (0 if est.conf_int(alpha=0.05)[1,0] <=1 else 1) for est in estimates]
+        cis = [est.conf_int(alpha=0.05)[1, :] - - (0 if est.conf_int(alpha=0.05)[1,0] <=1 else 1) for est in estimates]
+        rsquared = [est.rsquared for est in estimates]
+        return hurst, cis, rsquared
