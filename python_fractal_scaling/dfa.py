@@ -1,11 +1,12 @@
 import numpy
 from sklearn.linear_model import LinearRegression
+from statsmodels.api import OLS, add_constant
 
 
-def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, random_walk: bool = False):
+def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, return_confidence_interval: bool = True):
     """
     Expects X to be a time series of T rows and n columns.
-    :param random_walk: Is the data x like a random walk?
+    :param return_confidence_interval:
     :param x:
     :param max_window_size:
     :param min_widow_size:
@@ -13,25 +14,37 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, random_
     """
 
     def unbounded(xx):
-        return numpy.cumsum(xx - xx.mean(0), axis=0) if not random_walk else xx
+        return numpy.cumsum(xx - xx.mean(0), axis=0)
 
     def windows(yt, n):
         return numpy.split(yt, numpy.arange(n, yt.shape[0], step=n))
 
-    def regression_error(window_list):
-        return numpy.vstack(list(map(
+    def regression_error(window_list, n):
+        filtered_windows = list(filter(lambda x: x.shape[0] == n, window_list))
+        return numpy.stack(list(map(
             lambda x: LinearRegression().fit(numpy.arange(0, x.shape[0]).reshape(-1, 1), x).predict(
-                numpy.arange(0, x.shape[0]).reshape(-1, 1)) - x, window_list)))
+                numpy.arange(0, x.shape[0]).reshape(-1, 1)) - x, filtered_windows)))
 
     def f_n(error):
-        return numpy.sqrt(numpy.power(error, 2.0).sum(0) / error.shape[0])
+        return numpy.sqrt(numpy.power(error, 2.0).mean(1)).mean(0)
+
+    def n_values(mn, mx):
+        return numpy.array(range(mn, mx+1))
 
     def f(xx, mn, mx):
-        return numpy.vstack(list(map(lambda n: f_n(regression_error(windows(unbounded(xx), n))), numpy.arange(mn, mx))))
+        return numpy.vstack(list(map(lambda n: f_n(regression_error(windows(unbounded(xx), n), n)), n_values(mn, mx))))
 
-    features = numpy.log(numpy.arange(min_widow_size, max_window_size))
+    features = numpy.log(n_values(min_widow_size, max_window_size)).reshape(-1, 1)
     y = numpy.log(f(x, mn=min_widow_size, mx=max_window_size))
-    lr = LinearRegression().fit(features, y)
-    r_squared = lr.score(features, y)
-    hurst = lr.coef_.flatten() + (1 if random_walk else 0)
-    return hurst, r_squared
+
+    if not return_confidence_interval:
+        lr = LinearRegression().fit(features, y)
+        r_squared = lr.score(features, y)
+        hurst = lr.coef_.flatten()
+        return hurst, r_squared
+    else:
+        estimates = [OLS(endog=y[:,i], exog=add_constant(features)).fit() for i in range(y.shape[1])]
+        hurst = [est.params[1] for est in estimates]
+        cis = [(estimates[i].conf_int(alpha=0.05)[1, :] - (0. if hurst[i] <= 1 else 1.)) for i in range(len(estimates))]
+        hurst = [h if h <= 1 else h - 1 for h in hurst]
+        return hurst, cis
