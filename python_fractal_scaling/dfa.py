@@ -46,7 +46,7 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, return_
         return hurst, r_squared
     else:
         estimates = [OLS(endog=y[:,i], exog=add_constant(features)).fit() for i in range(y.shape[1])]
-        hurst = [est.params[1] - (0 if est.conf_int(alpha=0.05)[1,0] <=1.2 else 1) for est in estimates]
-        cis = [est.conf_int(alpha=0.05)[1, :] - (0 if est.conf_int(alpha=0.05)[1,0] <=1.2 else 1) for est in estimates]
+        hurst = [est.params[1] for est in estimates]
+        cis = [est.conf_int(alpha=0.05)[1, :] for est in estimates]
         rsquared = [est.rsquared for est in estimates]
         return hurst, cis, rsquared
