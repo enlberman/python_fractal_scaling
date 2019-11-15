@@ -3,7 +3,7 @@ from sklearn.linear_model import LinearRegression
 from statsmodels.api import OLS, add_constant
 
 
-def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, return_confidence_interval: bool = True):
+def dfa(x: numpy.ndarray, max_window_size: int, min_window_size: int = 3, return_confidence_interval: bool = True):
     """
     Expects X to be a time series of T rows and n columns.
     :param return_confidence_interval:
