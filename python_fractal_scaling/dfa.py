@@ -21,17 +21,17 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_window_size: int = 3, return
 
     def regression_error(window_list, n):
         filtered_windows = list(filter(lambda x: x.shape[0] == n, window_list))
-        # y = numpy.stack(filtered_windows)
-        # d = add_constant(numpy.arange(1, filtered_windows[0].shape[0]+1))
-        # soln = d @ numpy.linalg.inv(d.T @ d) @ d.T
-        # return numpy.swapaxes(y.T,1,2) - numpy.swapaxes(y.T,1,2) @ soln
+        y = numpy.stack(filtered_windows)
+        d = add_constant(numpy.arange(1, filtered_windows[0].shape[0]+1))
+        soln = d @ numpy.linalg.inv(d.T @ d) @ d.T
+        return numpy.swapaxes(y.T,1,2) - numpy.swapaxes(y.T,1,2) @ soln
 
-        return numpy.stack(list(map(
-            lambda x: LinearRegression().fit(numpy.arange(0, x.shape[0]).reshape(-1, 1), x).predict(
-                numpy.arange(0, x.shape[0]).reshape(-1, 1)) - x, filtered_windows)))
+        # return numpy.stack(list(map(
+        #     lambda x: LinearRegression().fit(numpy.arange(0, x.shape[0]).reshape(-1, 1), x).predict(
+        #         numpy.arange(0, x.shape[0]).reshape(-1, 1)) - x, filtered_windows)))
 
     def f_n(error):
-        return numpy.sqrt(numpy.power(error, 2.0).mean(1).mean(0))
+        return numpy.sqrt(numpy.power(error, 2.0).mean(1).mean(1))
 
     def n_values(xx, mn, mx):
         return [numpy.asarray(range(mn, mx))[
