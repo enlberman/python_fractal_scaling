@@ -26,7 +26,7 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_widow_size: int = 3, return_
                 numpy.arange(0, x.shape[0]).reshape(-1, 1)) - x, filtered_windows)))
 
     def f_n(error):
-        return numpy.sqrt(numpy.power(error, 2.0).mean(1)).mean(0)
+        return numpy.sqrt(numpy.power(error, 2.0).mean(1).mean(0))
 
     def n_values(xx, mn, mx):
         return [numpy.asarray(range(mn, mx))[
