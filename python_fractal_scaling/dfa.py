@@ -34,11 +34,12 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_window_size: int = 3, return
                     numpy.max(numpy.argwhere(numpy.asarray([xx.shape[0] // i for i in range(mn, mx)]) == n))] for n in
                 numpy.unique([xx.shape[0] // i for i in range(mn, mx)])]
 
-    def f(xx, mn, mx):
-        return numpy.vstack(list(map(lambda n: f_n(regression_error(windows(unbounded(xx), n), n)), n_values(xx, mn, mx))))
+    def f(xx, ns):
+        return numpy.vstack(list(map(lambda n: f_n(regression_error(windows(unbounded(xx), n), n)), ns)))
 
-    features = numpy.log(n_values(x, min_window_size, max_window_size)).reshape(-1, 1)
-    y = numpy.log(f(x, mn=min_window_size, mx=max_window_size))
+    ens = n_values(x, mn=min_window_size, mx=max_window_size)
+    features = numpy.log(ens).reshape(-1, 1)
+    y = numpy.log(f(xx=x, ns=ens))
 
     if not return_confidence_interval:
         lr = LinearRegression().fit(features, y)
@@ -51,8 +52,3 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_window_size: int = 3, return
         cis = [est.conf_int(alpha=0.05)[1, :] for est in estimates]
         rsquared = [est.rsquared for est in estimates]
         return hurst, cis, rsquared
-
-import time
-x = numpy.random.randn(100,100000)
-dfa(x,max_window_size=25)
-print()
