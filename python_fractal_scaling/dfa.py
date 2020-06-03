@@ -26,10 +26,6 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_window_size: int = 3, return
         soln = d @ numpy.linalg.inv(d.T @ d) @ d.T
         return numpy.swapaxes(y.T,1,2) - numpy.swapaxes(y.T,1,2) @ soln
 
-        # return numpy.stack(list(map(
-        #     lambda x: LinearRegression().fit(numpy.arange(0, x.shape[0]).reshape(-1, 1), x).predict(
-        #         numpy.arange(0, x.shape[0]).reshape(-1, 1)) - x, filtered_windows)))
-
     def f_n(error):
         return numpy.sqrt(numpy.power(error, 2.0).mean(1).mean(1))
 
@@ -56,4 +52,4 @@ def dfa(x: numpy.ndarray, max_window_size: int, min_window_size: int = 3, return
         hurst = [est.params[1] for est in estimates]
         cis = [est.conf_int(alpha=0.05)[1, :] for est in estimates]
         rsquared = [est.rsquared for est in estimates]
-        return hurst, cis, rsquared
+        return hurst, cis, rsquared, ens
